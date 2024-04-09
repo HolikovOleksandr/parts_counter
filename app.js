@@ -1,20 +1,25 @@
-import { Bot } from "grammy";
+import { Bot, Keyboard } from "grammy";
 import { Repository as rps } from "./repository.js";
 import dotenv from "dotenv";
 import { Keyboards } from "./keyboards.js";
 dotenv.config();
 
-const bot = new Bot("7188468982:AAHub6Hz4XkionPQ7CW3VWyKbm-akz_505A");
+const kb = new Keyboards();
 
+let currentPart = null;
+let currentAmount = null;
+
+// Create bot
+const bot = new Bot(process.env.BOT_TOKEN);
+
+// Set own commands
 bot.api.setMyCommands([
   { command: "start", description: "Почати роботу бота" },
   { command: "details", description: "Обрати деталь" },
-  { command: "show_all", description: "Список працівників" },
 ]);
 
+// Start
 bot.command("start", async (ctx) => {
-  const kb = new Keyboards();
-
   const currentId = ctx.from.id;
   const existEmployee = await rps.findEmployeeById(currentId);
 
@@ -22,7 +27,8 @@ bot.command("start", async (ctx) => {
     const answer = "Привіт, спочатку давай зарееструєм тебе";
     await ctx.reply(answer, { reply_markup: kb.sendContactKeyboard() });
   } else {
-    const parts = await rps.getPartsArray();
+    // Set part from start
+    const parts = await rps.getAllParts();
     const partsKeyboard = await kb.choiseDetailKeyboard(parts);
     const answer = `З поверненням, ${existEmployee.Name}! Обирай деталь:`;
 
@@ -30,9 +36,9 @@ bot.command("start", async (ctx) => {
   }
 });
 
-bot.on([":contact", "msg:details"], async (ctx) => {
-  const kb = new Keyboards();
-  const parts = await rps.getPartsArray();
+// Registration
+bot.on(":contact", async (ctx) => {
+  const parts = await rps.getAllParts();
   const partsKeyboard = await kb.choiseDetailKeyboard(parts);
 
   const employeeData = {
@@ -47,27 +53,58 @@ bot.on([":contact", "msg:details"], async (ctx) => {
   } catch (error) {
     console.error(error);
   } finally {
+    // Set part after registration
     const answer = `Вітаю у лічільнику виготевлених деталей, ${employeeData.Name}! Обирай деталь:`;
     await ctx.reply(answer, { reply_markup: partsKeyboard });
   }
 });
 
-// bot.command('details', async (ctx) => {
-//   const kb = new Keyboards();
-//   const parts = await rps.getPartsArray();
-//   const partsKeyboard = await kb.choiseDetailKeyboard(parts);
+// Set detail from command
+bot.command("details", async (ctx) => {
+  const parts = await rps.getAllParts();
+  const partsKeyboard = await kb.choiseDetailKeyboard(parts);
 
-//   const answer = Привіт! Обирай деталь:;
-//   await ctx.reply(answer, { reply_markup: partsKeyboard });
-// });
+  const answer = "Привіт! Обирай деталь:";
+  await ctx.reply(answer, { reply_markup: partsKeyboard });
+});
 
-bot.callbackQuery(["1", "2", "3", "4", "5"], async (ctx) => {
+// Set amount
+bot.on("callback_query:data", async (ctx) => {
+  const setPartsKeyboard = kb.setPartsKeyboard();
   await ctx.answerCallbackQuery();
-  const currentPart = "Part Three";
-  const answer = `Як багато <b>${currentPart}</b> тобою виготовлено цього разу?`;
+
+  currentPart = ctx.callbackQuery.data;
+  const answer = `Як багато <b>${currentPart}</b> тобою виготовлено?`;
 
   await ctx.reply(answer, {
+    // reply_markup: setPartsKeyboard,
     parse_mode: "HTML",
+  });
+});
+
+// Write to db
+bot.hears("1", async (ctx) => {
+  const writeToDbKeyboard = kb.writeToDbKeyboard();
+
+  //TODO: Write 0 and <0 logic
+  currentAmount = +ctx.message.text;
+
+  const answer = `Додаємо ${currentAmount} ${currentPart} до інших?`;
+
+  await ctx.reply(answer, {
+    reply_markup: writeToDbKeyboard,
+  });
+});
+
+bot.hears("Додати до інших", async (ctx) => {
+  const congratMem =
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExczg0YW53Y3ZrY3NidXRqOHBoeHlmeWF5aHY3cnZydXVxZm5hOXR5dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5fHTkXB7EOjTV7u8M6/giphy.gif";
+  const answer = "Гарна робота! Ти непогано підзаробив сьогодні :)";
+
+  await rps.addParts();
+
+  await ctx.replyWithVideo(congratMem, {
+    description: answer,
   });
 });
 

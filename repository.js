@@ -23,10 +23,14 @@ export class Repository {
       .catch((err) => console.log(err));
   };
 
-  static getPartsArray = async () => {
+  static getAllParts = async () => {
     return await axios
       .get("https://sheetdb.io/api/v1/of491sgneuxt7/keys")
       .then((res) => res.data.slice(3))
       .catch((err) => console.log(err));
+  };
+
+  static addParts = async (employeeID, part, amount) => {
+    // Implement logic here
   };
 }
