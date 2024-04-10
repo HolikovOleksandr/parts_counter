@@ -10,7 +10,7 @@ export class Repository {
       .catch((err) => console.log(err));
   };
 
-  static finadAllEmployes = async () => {
+  static findAllEmployes = async () => {
     return await axios
       .get("https://sheetdb.io/api/v1/of491sgneuxt7/")
       .catch((err) => console.log(err));
@@ -30,7 +30,18 @@ export class Repository {
       .catch((err) => console.log(err));
   };
 
-  static addParts = async (employeeID, part, amount) => {
-    // Implement logic here
+  static addParts = async (id, part, amount) => {
+    const uri = `https://sheetdb.io/api/v1/of491sgneuxt7/Id/${id}`;
+
+    try {
+      const data = await this.findEmployeeById(id);
+      data[part] = (Number(data[part]) || 0) + Number(amount);
+
+      await axios.patch(uri, { data });
+
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 }

@@ -1,4 +1,4 @@
-import { Bot, Keyboard } from "grammy";
+import { Bot} from "grammy";
 import { Repository as rps } from "./repository.js";
 import dotenv from "dotenv";
 import { Keyboards } from "./keyboards.js";
@@ -70,7 +70,7 @@ bot.command("details", async (ctx) => {
 
 // Set amount
 bot.on("callback_query:data", async (ctx) => {
-  const setPartsKeyboard = kb.setPartsKeyboard();
+  // const setPartsKeyboard = kb.setPartsKeyboard();
   await ctx.answerCallbackQuery();
 
   currentPart = ctx.callbackQuery.data;
@@ -82,31 +82,33 @@ bot.on("callback_query:data", async (ctx) => {
   });
 });
 
-// Write to db
-bot.hears("1", async (ctx) => {
-  const writeToDbKeyboard = kb.writeToDbKeyboard();
+bot.on(":text", async (ctx) => {
+  const msg = ctx.message.text;
+  const isNumber = /^\d+$/.test(ctx.message.text);
 
-  //TODO: Write 0 and <0 logic
-  currentAmount = +ctx.message.text;
+  // Write to db
+  if (isNumber) {
+    if (msg > 0) {
+      currentAmount = +msg;
 
-  const answer = `Додаємо ${currentAmount} ${currentPart} до інших?`;
+      const congratMem =
+        "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExczg0YW53Y3ZrY3NidXRqOHBoeHlmeWF5aHY3cnZydXVxZm5hOXR5dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5fHTkXB7EOjTV7u8M6/giphy.gif";
+      const answer = `${currentAmount}!? Гарна робота!`;
 
-  await ctx.reply(answer, {
-    reply_markup: writeToDbKeyboard,
-  });
+      await rps.addParts(ctx.from.id, currentPart, currentAmount);
+
+      await ctx.replyWithVideo(congratMem, { caption: answer });
+    } else if (msg < 0) {
+      await ctx.reply(
+        // const minuseDetailsKeyboard = kb.minuseDetailsKeyboard()
+        `Ти якщо тягаєш запчастини з виробництва то хочаб не хизувався! Чи відняти ${msg} ${currentPart} від загальної сумми?`
+      );
+    } else {
+      await ctx.reply("0?!! То краще попрацюй, а не втикай у телефон.");
+    }
+  } else {
+    await ctx.reply("Невідома мені команда, подиви щось у синій копці 'Меню'");
+  }
 });
 
-bot.hears("Додати до інших", async (ctx) => {
-  const congratMem =
-    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExczg0YW53Y3ZrY3NidXRqOHBoeHlmeWF5aHY3cnZydXVxZm5hOXR5dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/5fHTkXB7EOjTV7u8M6/giphy.gif";
-  const answer = "Гарна робота! Ти непогано підзаробив сьогодні :)";
-
-  await rps.addParts();
-
-  await ctx.replyWithVideo(congratMem, {
-    description: answer,
-  });
-});
-
-bot.on(":text", async (ctx) => await ctx.reply("Невідома мені команда :("));
 bot.start();
