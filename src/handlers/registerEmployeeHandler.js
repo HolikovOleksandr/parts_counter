@@ -1,4 +1,4 @@
-import { Repository } from '../utils/resources/repository.js';
+import { Repository } from '../utils/resources/Repository.js';
 import { choiceDetail } from '../utils/keyboards/index.js';
 import { Employee } from '../models/Employee.js';
 

@@ -27,7 +27,7 @@ export class Repository {
       .catch((err) => console.log(err));
   };
 
-  static addDetailsToDatabase = async (id, part, amount) => {
+  static addDetailsToDb = async (id, part, amount) => {
     const uri = `https://sheetdb.io/api/v1/of491sgneuxt7/id/${id}`;
 
     try {
