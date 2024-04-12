@@ -1,7 +1,11 @@
+import { HttpError, GrammyError } from 'grammy';
 
-export const errorHandler = (error) => {
+export const errorHandler = (err) => {
+  const ctx = err.ctx;
+
   console.error('::: ERROR ::: ERROR ::: ERROR :::');
-  console.error(`Помилка оновлення ${ctx.update.update_id}:`);
+  console.error(`Помилка під час обробки оновлення ${ctx.update.update_id}:`);
+
   if (err.error instanceof GrammyError) {
     console.error('Помилка в запиті:', err.error.description);
   } else if (err.error instanceof HttpError) {
