@@ -39,4 +39,14 @@ export class Repository {
       console.error(error);
     }
   };
+
+  static showDetailsAmoint = async (employeeId) => {
+    try {
+      const { id, name, phone, ...details } = await this.findEmployeeById(employeeId);
+      const detailsData = { ...details };
+      return detailsData;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 }

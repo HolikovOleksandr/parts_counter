@@ -7,6 +7,7 @@ import {
   getDetailsAmoundHandler,
   setDetailsAmoundHandler,
   unexpectCommandHandler,
+  showDetailsAmountHandler,
 } from './handlers/index.js';
 
 import { myCommands } from './utils/commands/myCommands.js';
@@ -34,6 +35,10 @@ bot.command('start', async (ctx) => {
 
 bot.command('details', async (ctx) => {
   await showAllDetailsHandler(ctx);
+});
+
+bot.command('details_amount', async (ctx) => {
+  await showDetailsAmountHandler(ctx);
 });
 
 bot.on(':contact', async (ctx) => {
